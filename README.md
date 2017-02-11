@@ -1,4 +1,4 @@
-# quit-social-media
+# quit-social-media `now()`
 
 ## usage:
 ```
