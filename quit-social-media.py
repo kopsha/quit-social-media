@@ -33,15 +33,15 @@ def doTheDarwinMagic( args ):
 		sudo killall -HUP mDNSResponder
 	OSX 10.10.4
 		sudo killall -HUP mDNSResponder
-	OSX 10.10.0 – 10.10.3
+	OSX 10.10.0 - 10.10.3
 		sudo discoveryutil mdnsflushcache
-	OSX 10.9  – 10.8 – 10.7
+	OSX 10.9  - 10.8 - 10.7
 		sudo killall -HUP mDNSResponder
-	OSX 10.5 – 10.6
+	OSX 10.5 - 10.6
 		sudo dscacheutil -flushcache
 	Windows
 		ipconfig /flushdns
-	Linux (depending on what you’re running)
+	Linux (depending on what you're running)
 		/etc/init.d/named restart
 		/etc/init.d/nscd restart
 	'''
@@ -81,7 +81,7 @@ def doTheDarwinMagic( args ):
 		buff += freeFooter
 
 		if args.readonly:
-			print( "read-only mode, here are the changes:\n%s" % (buff) )
+			print( "[read-only] here are the changes:\n%s" % (buff) )
 		else:
 			copyfile( hostsFilename, hostsFilename+'.bak' )
 			fileH.write( buff )
@@ -89,12 +89,16 @@ def doTheDarwinMagic( args ):
 	fileH.close()
 
 	# flushing dsn caches...
-	try:
-		call( ['killall', '-HUP', 'mDNSResponder'] )
-		call( ['dscacheutil', '-flushcache'] )
-	except Exception as e:
-		print( e )
-		return 1
+	if args.readonly:
+		print( "[read-only] flushing dns caches" )
+	else:
+		try:
+			call( ['killall', '-HUP', 'mDNSResponder'] )
+			#call( ['discoveryutil', 'mdnsflushcache'] )
+			call( ['dscacheutil', '-flushcache'] )
+		except Exception as e:
+			print( e )
+			return 1
 
 	print( "finished. your're safe" )
 	return 0		# 0 means success
