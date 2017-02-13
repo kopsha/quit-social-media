@@ -59,7 +59,7 @@ def doTheDarwinMagic( args ):
 
 	hasPatchAlready = False
 	for line in fileH: 
-		if line.startswith( '### stay free' ) >= 0:
+		if line.startswith( '### stay free' ):
 			print( "already patched, skipping..." )
 			hasPatchAlready = True
 			break
