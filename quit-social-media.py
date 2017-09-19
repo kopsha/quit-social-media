@@ -114,10 +114,10 @@ guestPlatformString = platform.platform( terse=True )
 rc = 0
 if guestPlatformString.startswith( 'Darwin' ):
 	rc = doTheDarwinMagic( args )
-elif guestPlatformString.startsWith( "Linux" ):
+elif guestPlatformString.startswith( "Linux" ):
 	rc = doTheDarwinMagic( args )
 	rc = 1
-elif guestPlatformString.startsWith( "Windows" ):
+elif guestPlatformString.startswith( "Windows" ):
 	print( "comming soon..." )
 	rc = 9
 else:

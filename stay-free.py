@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 from platform import platform
 
 from os import path
-# from shutil import copyfile
 from subprocess import call
 
 def main():
@@ -16,15 +15,16 @@ def main():
 
 	# what os are we running on?
 	guestPlatformString = platform( terse=True )
+	print( guestPlatformString )
 	configFilePath = ''
 
 	if guestPlatformString.startswith( 'Darwin' ):
 		configFilePath = path.join( '/etc', 'hosts')
 		print( "- using osx strategy (%s)" % (configFilePath) )
-	elif guestPlatformString.startsWith( 'Linux' ):
+	elif guestPlatformString.startswith( 'Linux' ):
 		configFilePath = path.join( '/etc', 'hosts')
 		print( "- using linux strategy (%s)" % (configFilePath) )
-	elif guestPlatformString.startsWith( 'Windows' ):
+	elif guestPlatformString.startswith( 'Windows' ):
 		configFilePath = path.join( 'c:/Windows/System32/Drivers/etc', 'hosts')
 		print( "- using windows strategy, %s" % (configFilePath) )
 	else:
@@ -106,10 +106,18 @@ def applyConfigPatch( configPath ):
 			insideHeader = False
 
 	patchedConfigStr = cleanConfigStr + makeConfigString()
-	
-	with open(configPath, 'w') as config_file:
-		config_file.write( patchedConfigStr )
-	config_file.close()
+
+	try:
+		with open(configPath, 'w') as config_file:
+			config_file.write( patchedConfigStr )
+		config_file.close()
+	except IOError as e:
+		if e.errno == 13:
+			print( e )
+			print( "You need root permissions to run this script." )
+			exit(13)
+		else:
+			raise e
 
 def removeConfigPatch( configPath ):
 	configStr = ''
@@ -130,9 +138,17 @@ def removeConfigPatch( configPath ):
 		elif line == freeFooter:
 			insideHeader = False
 
-	with open(configPath, 'w') as config_file:
-		config_file.write( cleanConfigStr )
-	config_file.close()
+	try:
+		with open(configPath, 'w') as config_file:
+			config_file.write( cleanConfigStr )
+		config_file.close()
+	except IOError as e:
+		if e.errno == 13:
+			print( e )
+			print( "You need root permissions to run this script." )
+			exit(13)
+		else:
+			raise e
 
 def makeConfigString():
 	buff = freeHeader
@@ -153,6 +169,8 @@ def makeConfigString():
 def flushDnsCache( guestPlatformString ):
 	osPlatform, osVersion = guestPlatformString.split( '-', 1 )
 	osMajorVersion, osMinorVersion = osVersion.split( '.', 1 )
+
+	print( 'Flushing dns caches...' )
 
 	### os x #
 	if osPlatform == 'Darwin':
@@ -175,10 +193,10 @@ def flushDnsCache( guestPlatformString ):
 		else:
 			call( ['killall', '-HUP', 'mDNSResponder'] )
 	### linux #			
-	elif guestPlatformString.startsWith( 'Linux' ):
-		print( "* clearing caches not implemented, yet. (%s)" % (guestPlatformString) )
+	elif guestPlatformString.startswith( 'Linux' ):
+		call( ['nscd', '-i', 'hosts'] )
 	### windows #
-	elif guestPlatformString.startsWith( 'Windows' ):
+	elif guestPlatformString.startswith( 'Windows' ):
 		call( ['ipconfig', '/flushdns'] ) 
 	### others # ???
 	else:
